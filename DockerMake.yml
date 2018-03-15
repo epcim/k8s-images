@@ -1,0 +1,496 @@
+# vim: sts=2 ts=2 sw=2 ft=yaml
+
+## Don't update /images/**/Dockerfiles unless strictly needed. If possible move whole logic in this file.
+#
+
+## GUIDE
+# - complex Dockerfiles link with FROM_DOCKERFILE especially if they are provided with the upstream chart.
+# - local modifications and inhouse builds, modify this file directly
+
+## EXAMPLE - Localy customized version of image, added plugins
+# fluentd-vendor:
+#   FROM_DOCKERFILE: fluentd/Dockerfile
+#   requires:
+#   - base
+# fluentd:
+#   - base
+#   - fluentd-vendor
+#   build: |
+#     RUN echo "Additional fluentd plugins:" \
+#      && gem install fluent-plugin-filter_typecast --no-ri --no-rdoc \
+#      && gem install fluent-plugin-remote_syslog --no-ri --no-rdoc
+
+## SHARED
+#
+base:
+  ignore: |
+    *~
+    *.pyc
+    *.tmp
+  build: |
+    MAINTAINER "epcim@apealive.net"
+    ENV LANG C.UTF-8
+    ENV LANGUAGE $LANG
+    ENV TZ Etc/UTC
+
+
+## LIST OF COMMON "SHARED" IMAGES WITH TOOLS
+#
+busybox:
+  FROM: busybox
+  requires:
+  - base
+
+curl:
+  FROM: appropriate/curl
+  requires:
+  - base
+
+netcat:
+  FROM: multicloud/netcat
+  requires:
+  - base
+
+docker-git-alpine:
+  FROM: bwits/docker-git-alpine
+  requires:
+  - base
+
+ngingx-auth-ldap:
+  FROM: dweomer/nginx-auth-ldap:1.13.5-on-alpine-3.5
+  requires:
+  - base
+
+
+## LIST OF APP IMAGES FROM EXTERNAL REPOS
+#
+#akka-cluster:
+  #FROM_DOCKERFILE: akka-cluster/Dockerfile
+  #requires:
+  #- base
+
+#akka-ingest:
+  #FROM_DOCKERFILE: akka-ingest/Dockerfile
+  #requires:
+  #- base
+
+#akka-server:
+  #FROM_DOCKERFILE: akka-server/Dockerfile
+  #requires:
+  #- base
+
+#alertmanager:
+  #FROM_DOCKERFILE: alertmanager/Dockerfile
+  #requires:
+  #- base
+
+#autoscale:
+  #FROM_DOCKERFILE: autoscale/Dockerfile
+  #requires:
+  #- base
+
+#cassandra:
+  #FROM_DOCKERFILE: cassandra/Dockerfile
+  #requires:
+  #- base
+
+#clair:
+  #FROM_DOCKERFILE: clair/Dockerfile
+  #requires:
+  #- base
+
+#configmap-reload:
+  #FROM_DOCKERFILE: configmap-reload/Dockerfile
+  #requires:
+  #- base
+
+#elasticsearch:
+  #FROM_DOCKERFILE: elasticsearch/Dockerfile
+  #requires:
+  #- base
+
+#elasticsearch-exporter:
+  #FROM_DOCKERFILE: elasticsearch_exporter/Dockerfile
+  #requires:
+  #- base
+
+elasticsearch-curator:
+  FROM: bobrik/curator:5.4.0
+  requires:
+  - base
+
+elasticsearch-oss:
+  FROM: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
+  requires:
+  - base
+
+grafana:
+  FROM: grafana/grafana:4.6.3
+  requires:
+  - base
+
+graphite-statsd:
+  FROM: graphiteapp/graphite-statsd:1.0.2-2
+  requires:
+  - base
+
+#etcd-amd64:
+  #FROM_DOCKERFILE: etcd-amd64/Dockerfile
+  #requires:
+  #- base
+
+#filebeat:
+  #FROM_DOCKERFILE: filebeat/Dockerfile
+  #requires:
+  #- base
+
+#fission:
+  #FROM_DOCKERFILE: fission/Dockerfile
+  #requires:
+  #- base
+
+#fission-ui:
+  #FROM_DOCKERFILE: fission-ui/Dockerfile
+  #requires:
+  #- base
+
+#fluentd:
+  #FROM_DOCKERFILE: fluentd/Dockerfile
+  #requires:
+  #- base
+
+fluentd:
+  FROM: alpine:3.5
+  requires:
+  - base
+  build: |
+    ARG FLUENTD_VERSION="1.1.0"
+    ENV FLUENTD_VERSION $FLUENTD_VERSION
+    LABEL Description="Fluentd docker image" Vendor="epcim" Version="$FLUENTD_VERSION"
+    # Do not split this into multiple RUN!
+    # Docker creates a layer for every RUN-Statement
+    # therefore an 'apk delete' has no effect
+    RUN apk update \
+     && apk upgrade \
+     && apk add --no-cache \
+      ca-certificates \
+      ruby ruby-irb \
+     && apk add --no-cache --virtual .build-deps \
+      build-base \
+      ruby-dev wget gnupg \
+     && update-ca-certificates \
+     && echo 'gem: --no-document' >> /etc/gemrc \
+     && gem install oj -v 2.18.3 \
+     && gem install json -v 2.1.0 \
+     && gem install fluentd --no-ri --no-rdoc -v $FLUENTD_VERSION \
+     && fluent-gem install fluent-plugin-elasticsearch --no-ri --no-rdoc -v '~> 2.7.0' \
+     && fluent-gem install fluent-plugin-influxdb --no-ri --no-rdoc -v '~> 1.0.0' \
+     && fluent-gem install fluent-plugin-mail --no-ri --no-rdoc \
+     && fluent-gem install fluent-plugin-multiprocess --no-ri --no-rdoc \
+     && fluent-gem install fluent-plugin-record-modifier --no-ri --no-rdoc -v '~> 1.0.0.rc1' \
+     && fluent-gem install fluent-plugin-filter_typecast --no-ri --no-rdoc \
+     && fluent-gem install fluent-plugin-remote_syslog --no-ri --no-rdoc -v '~> 1.0.0' \
+     && apk del .build-deps \
+     && rm -rf /var/cache/apk/* \
+     && rm -rf /tmp/* /var/tmp/* /usr/lib/ruby/gems/*/cache/*.gem
+
+# python
+python:
+  FROM: python:2.7.14-alpine3.7 
+
+#gerrit:
+  #FROM_DOCKERFILE: gerrit/Dockerfile
+  #requires:
+  #- base
+
+#hadoop:
+  #FROM_DOCKERFILE: hadoop/Dockerfile
+  #requires:
+  #- base
+
+#hadoop-datanode:
+  #FROM_DOCKERFILE: hadoop-datanode/Dockerfile
+  #requires:
+  #- base
+
+#hadoop-namenode:
+  #FROM_DOCKERFILE: hadoop-namenode/Dockerfile
+  #requires:
+  #- base
+
+#iot-gen:
+  #FROM_DOCKERFILE: iot-gen/Dockerfile
+  #requires:
+  #- base
+
+#jenkins:
+  #FROM_DOCKERFILE: jenkins/Dockerfile
+  #requires:
+  #- base
+
+#jenkins-demo-slave:
+  #FROM_DOCKERFILE: jenkins-demo-slave/Dockerfile
+  #requires:
+  #- base
+
+#jenkins-jnlp-slave:
+  #FROM_DOCKERFILE: jenkins-jnlp-slave/Dockerfile
+  #requires:
+  #- base
+
+#kafka:
+  #FROM_DOCKERFILE: kafka/Dockerfile
+  #requires:
+  #- base
+
+#kibana:
+  #FROM_DOCKERFILE: kibana/Dockerfile
+  #requires:
+  #- base
+
+kibana-oss:
+  FROM: docker.elastic.co/kibana/kibana-oss:6.1.1
+  requires:
+  - base
+
+#kubernetes-rabbitmq-autocluster:
+  #FROM_DOCKERFILE: kubernetes-rabbitmq-autocluster/Dockerfile
+  #requires:
+  #- base
+
+#kube-state-metrics:
+  #FROM_DOCKERFILE: kube-state-metrics/Dockerfile
+  #requires:
+  #- base
+
+influxdb:
+  FROM: influxdb:1.3.4
+  requires:
+  - base
+
+influxdb-timeshift-proxy:
+  FROM: node:carbon
+  requires:
+  - base
+  build: |
+    ENV INFLUXDB localhost:8086
+    WORKDIR /usr/src/app
+    RUN git clone https://github.com/maxsivanov/influxdb-timeshift-proxy.git /usr/src/app \
+     && npm install --only=production
+    EXPOSE 8089
+    CMD [ "npm", "start" ]
+
+#logstash:
+  #FROM_DOCKERFILE: logstash/Dockerfile
+  #requires:
+  #- base
+
+#mariadb:
+  #FROM_DOCKERFILE: mariadb/Dockerfile
+  #requires:
+  #- base
+
+#minio:
+  #FROM_DOCKERFILE: minio/Dockerfile
+  #requires:
+  #- base
+
+#minio-mc:
+  #FROM_DOCKERFILE: minio-mc/Dockerfile
+  #requires:
+  #- base
+
+#mongodb:
+  #FROM_DOCKERFILE: mongodb/Dockerfile
+  #requires:
+  #- base
+
+#mongodb-prometheus-exporter:
+  #FROM_DOCKERFILE: mongodb-prometheus-exporter/Dockerfile
+  #requires:
+  #- base
+
+#monocular-api:
+  #FROM_DOCKERFILE: monocular-api/Dockerfile
+  #requires:
+  #- base
+
+#monocular-ui:
+  #FROM_DOCKERFILE: monocular-ui/Dockerfile
+  #requires:
+  #- base
+
+#mysqld-exporter:
+  #FROM_DOCKERFILE: mysqld-exporter/Dockerfile
+  #requires:
+  #- base
+
+#node-exporter:
+  #FROM_DOCKERFILE: node-exporter/Dockerfile
+  #requires:
+  #- base
+
+#postgres:
+  #FROM_DOCKERFILE: postgres/Dockerfile
+  #requires:
+  #- base
+
+#postgres_exporter:
+  #FROM_DOCKERFILE: postgres_exporter/Dockerfile
+  #requires:
+  #- base
+
+#prerender:
+  #FROM_DOCKERFILE: prerender/Dockerfile
+  #requires:
+  #- base
+
+#prometheus:
+  #FROM_DOCKERFILE: prometheus/Dockerfile
+  #requires:
+  #- base
+
+#rabbitmq-autocluster:
+  #FROM_DOCKERFILE: rabbitmq-autocluster/Dockerfile
+  #requires:
+  #- base
+
+#rabbitmq-exporter:
+  #FROM_DOCKERFILE: rabbitmq-exporter/Dockerfile
+  #requires:
+  #- base
+
+#redis:
+  #FROM_DOCKERFILE: redis/Dockerfile
+  #requires:
+  #- base
+
+#redis_exporter:
+  #FROM_DOCKERFILE: redis_exporter/Dockerfile
+  #requires:
+  #- base
+
+#rollout-jenkins-slave:
+  #FROM_DOCKERFILE: rollout-jenkins-slave/Dockerfile
+  #requires:
+  #- base
+
+#rollout-jenkins-slave:
+  #FROM_DOCKERFILE: rollout-jenkins-slave/tweeviz-ui
+  #requires:
+  #- base
+
+#spark:
+  #FROM_DOCKERFILE: spark/Dockerfile
+  #requires:
+  #- base
+
+#spinnaker-clouddriver:
+  #FROM_DOCKERFILE: spinnaker-clouddriver/Dockerfile
+  #requires:
+  #- base
+
+#spinnaker-deck:
+  #FROM_DOCKERFILE: spinnaker-deck/Dockerfile
+  #requires:
+  #- base
+
+#spinnaker-echo:
+  #FROM_DOCKERFILE: spinnaker-echo/Dockerfile
+  #requires:
+  #- base
+
+#spinnaker-front50:
+  #FROM_DOCKERFILE: spinnaker-front50/Dockerfile
+  #requires:
+  #- base
+
+#spinnaker-gate:
+  #FROM_DOCKERFILE: spinnaker-gate/Dockerfile
+  #requires:
+  #- base
+
+#spinnaker-igor:
+  #FROM_DOCKERFILE: spinnaker-igor/Dockerfile
+  #requires:
+  #- base
+
+#spinnaker-jenkins-agent:
+  #FROM_DOCKERFILE: spinnaker-jenkins-agent/Dockerfile
+  #requires:
+  #- base
+
+#spinnaker-orca:
+  #FROM_DOCKERFILE: spinnaker-orca/Dockerfile
+  #requires:
+  #- base
+
+#spinnaker-rosco:
+  #FROM_DOCKERFILE: spinnaker-rosco/Dockerfile
+  #requires:
+  #- base
+
+#test-base:
+  #FROM_DOCKERFILE: test-base/Dockerfile
+  #requires:
+  #- base
+
+#tweepub:
+  #FROM_DOCKERFILE: tweepub/Dockerfile
+  #requires:
+  #- base
+
+#tweepub-fake:
+  #FROM_DOCKERFILE: tweepub-fake/Dockerfile
+  #requires:
+  #- base
+
+#tweetics:
+  #FROM_DOCKERFILE: tweetics/Dockerfile
+  #requires:
+  #- base
+
+#tweeviz-api:
+  #FROM_DOCKERFILE: tweeviz-api/Dockerfile
+  #requires:
+  #- base
+
+#tweeviz:
+  #FROM_DOCKERFILE: tweeviz/Dockerfile
+  #requires:
+  #- base
+
+#tweeviz-ui:
+  #FROM_DOCKERFILE: tweeviz-ui/Dockerfile
+  #requires:
+  #- base
+
+#vernemq:
+  #FROM_DOCKERFILE: vernemq/Dockerfile
+  #requires:
+  #- base
+
+#zeppelin:
+  #FROM_DOCKERFILE: zeppelin/Dockerfile
+  #requires:
+  #- base
+
+wheelhouse:
+  FROM: epcim/salt-formulas:wheelhouse-debian-stretch-salt-stable-formula-stable
+  requires:
+  - base
+
+#zipkin-dependencies:
+  #FROM_DOCKERFILE: zipkin-dependencies/Dockerfile
+  #requires:
+  #- base
+
+#zipkin:
+  #FROM_DOCKERFILE: zipkin/Dockerfile
+  #requires:
+  #- base
+
+#zookeeper:
+  #FROM_DOCKERFILE: zookeeper/Dockerfile
+  #requires:
+  #- base
