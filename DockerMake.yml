@@ -51,7 +51,7 @@ netcat:
   requires:
   - base
 
-docker-git-alpine:
+git:
   FROM: bwits/docker-git-alpine
   requires:
   - base
