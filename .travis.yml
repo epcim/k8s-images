@@ -19,15 +19,16 @@ install:
 - pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
 
 script:
-- if [ "$TRAVIS_BRANCH" == "master" ]; then
+- if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then
     echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER docker.io/epcim/salt;
-    TAG="--tag $(date '+%Y%m%d')"
-    PUSH="--push-to-registry -u docker.io/epcim/workload --registry-user $DOCKER_USER --registry-token $DOCKER_PASS"
+    test -n "$TAG" || TAG="--tag $(date '+%Y%m%d')"
+    PUSH="--push-to-registry -r docker.io/epcim --registry-user $DOCKER_USER --registry-token $DOCKER_PASS"
     #CACHE="--no-cache"
-    docker-make --all $TAG $CACHE $PUSH ;
+    #TODO, DockerMake to skip layers without FROM*; docker-make --all $TAG $CACHE $PUSH ;
+    docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE $PUSH
   else;
     # just test build
-    docker-make --all;
+    docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE
   fi
 
 after_failure:
