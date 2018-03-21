@@ -51,7 +51,7 @@ Workflow:
 
         # optional
         TAG="--tag $(date '+%Y%m%d')"
-        PUSH="--push-to-registry -u docker.io/epcim/k8s-images --registry-user XXX --registry-token XXX"
+        PUSH="--push-to-registry -r docker.io/epcim --registry-user XXX --registry-token XXX"
         CACHE="--no-cache"
 
         docker-make --list
@@ -59,7 +59,7 @@ Workflow:
         docker-make --all    $TAG
 
         # to build all targets (that has FROM* specified):
-        docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common' | xargs -n1 -I% docker-make %  $TAG $PUSH $CACHE
+        docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common\|^tini' | xargs -n1 -I% docker-make %  $TAG $PUSH $CACHE
 
 
 

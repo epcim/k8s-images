@@ -51,7 +51,7 @@ netcat:
   requires:
   - base
 
-docker-git-alpine:
+git:
   FROM: bwits/docker-git-alpine
   requires:
   - base
@@ -273,12 +273,13 @@ influxdb-timeshift-proxy:
   requires:
   - base
   build: |
-    ENV INFLUXDB localhost:8086
+    ARG INFLUXDB=localhost:8086
+    ENV INFLUXDB $INFLUXDB
     WORKDIR /usr/src/app
     RUN git clone https://github.com/maxsivanov/influxdb-timeshift-proxy.git /usr/src/app \
      && npm install --only=production
     EXPOSE 8089
-    CMD [ "npm", "start" ]
+    CMD [ "/usr/local/bin/npm", "run", "start" ]
 
 #logstash:
   #FROM_DOCKERFILE: logstash/Dockerfile
