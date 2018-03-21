@@ -18,11 +18,16 @@ install:
 - pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
 
 script:
-- if [ "$TRAVIS_BRANCH" =~ "^(master|develop|test)$" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER docker.io/epcim/salt;
-    test -n "$TAG" || TAG="--tag ${TRAVIS_BRANCH/master/latest}";
-    PUSH="--push-to-registry -r docker.io/epcim --registry-user $DOCKER_USER --registry-token $DOCKER_PASS";
-    docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE $PUSH;
+- echo $TRAVIS_BRANCH $TRAVIS_PULL_REQUEST
+- if "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    case $TRAVIS_BRANCH in
+      master|develop)
+        echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER docker.io/epcim/salt;
+        test -n "$TAG" || TAG="--tag ${TRAVIS_BRANCH/master/latest}";
+        PUSH="--push-to-registry -r docker.io/epcim --registry-user $DOCKER_USER --registry-token $DOCKER_PASS";
+        docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE $PUSH;
+      ;;
+    esac
   else
     docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE;
   fi;
