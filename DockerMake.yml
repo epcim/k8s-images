@@ -477,7 +477,7 @@ influxdb-timeshift-proxy:
   #- base
 
 wheelhouse:
-  FROM: epcim/salt-formulas:wheelhouse-debian-stretch-salt-stable-formula-stable
+  FROM: epcim/salt:wheelhouse-debian-stretch-salt-stable-formula-stable
   requires:
   - base
 
