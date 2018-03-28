@@ -1,39 +1,66 @@
-sudo: true
+sudo: required
+language: python
+cache: pip
+python:
+- '3.6'
 
 services:
 - docker
-
-language: python
 
 env:
   global:
   - LANG="C.UTF-8"
   - LC_ALL="C"
+  - PIPENV_SHELL_COMPAT=true PIPENV_COLORBLIND=true PIPENV_NOSPIN=true
   - COMMIT=${TRAVIS_COMMIT::8}
   - secure: G0ZoD7OMQyQF9/ZuuaOXrzgma/WuQtfYUOE15eJDAEf/8M4n9jdgnO4AQVaOEJevyzFYhTn5O7QAOPuWa25JM/nobvRWmSRKVp75sZY+0/gfOMIF5upnyCHQSsZCXef/5v8nnGNpRVKJAS8HthTpghTNPLgHJ+mCPQdSOfxoSqztyxF5VePxIdAfczDlYaYIX/NRZ42Nl5tvNUrxIuuYXi1nBSA69HCl3fNlIG6hVZ9KFZZHCvKfrJqri1xFyecsoMY0B7CfqiWO7arbSacbXa8Mvr1t+gh9bgb/PP65CtkumZTIYlkZlzn5UciGbQbH/Bn0RtFpTJW7Ct8qzljX41ofxMdILdGyQ7GidODqOPGqZdaiE9nvaGUyoED2CFi7QFm8PUOxaJwly7Kaz56MMDAERB9S1xAthL7FL70sgjB8ohGrdpR267rVM0MkMw7oRKzjbQDiIahYApMxQOkHzBlAaJhoQNAeHWmU19bsP5lJVFnlcyLLP4fArfJeiM34vdu3YQoTuXxIcZfKqnK9nw37ypIZvOQ8gfUbglDC4VNAON4D/NAjdmF/rZXvQq7cu5tP0CiKV5+ITcdeeZMSSoaoNbYlLsxC/0cW5B/yN7TvP/Zt4o09jO8kkjKxyKaozdoR0JrmU9ibsGaf36CJJdJ5mV2gwrr18JOssK9ddrg=
   - secure: 25kObQXxfcfkAKg5syuzeQ3YAOhUdvW1OAVabupEmSuTLvUpKDyqvg8s26LhIRS8fIrQYHh7xvg+oziE4do3gKZhf4br35rETB+P1tqWqejzWHm3aK4b5knI8CpE1ImwNJ8etCe7L1X/WKHVhfVPWuZj/4MO9tSELWw6MTzrShawD25iz833uaS+RvU771wB34yOP9gU+4aDLPf93vHRhQ+0/f2krL+LZ3lOENyNy3SDfucaSrIZCMZGbLPG0/4/olUa740wnnRrmlanSmzeWAOYXlBHFDrFFhKVylJKXb6+7uUMWLNhiPuUVi5+o4mScDP7L5ePcbdU+mxY5Ndse+SBB2kcPL6vJ1YXJhQttcc5u2oxo7+Ng/MkBaC42Et0ymXNgxyvy3lrSnohhbcztYXcY1wShSerJ80iMuH5wsdMYwnwK7mFrv73sBiJOCwUOb5ROMPlnB0T/jjN6Fdo4odmCS/Q1CXGbWRFcHDsiHkpwJ8Ecr/C7OmkVbhuI2isrZHvCMWcPHo4lNYQtFPI5SONMY65+ETPgw1iDvrrweU4xKsIRo0iTpvyFvEd+V9JUcMe/jXlb568meBesyf24jNw5wtSg28CEqLtBdmfQhdZ+lBVONWboive9STjC2CzBfNYl4fcS0JE0X+sVUGHTA3xOJJR9DQ1upu/p1iqbD0=
 
-install:
-- pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
-- pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
-
 script:
-- echo TRAVIS_BRANCH=$TRAVIS_BRANCH, TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    case $TRAVIS_BRANCH in
-      master|develop)
-        echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER docker.io/apealive;
-        test -n "$TAG" || TAG="--tag ${TRAVIS_BRANCH/master/latest}";
-        PUSH="--push-to-registry -r docker.io/apealive --registry-user $DOCKER_USER --registry-token $DOCKER_PASS";
-        docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE $PUSH;
-      ;;
-    esac
-  else
-    docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE;
-  fi;
+  - /bin/true
+
+stages:
+- name: test
+- name: build
+  if: ( branch NOT IN (master) OR fork = true ) AND type IN (push, api, pull_request)
+- name: publish
+  if: ( tag =~ ^v.* OR branch IN (master, develop) ) AND type != pull_request AND fork != true
+
+jobs:
+  include:
+  - stage: test
+# FIXME, use Pipenv instead of pip
+    install: &prereq
+    - pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
+    - pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
+    script:
+    - docker-make --list
+    - docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make --no_build % $TAG $CACHE;
+  - stage: build
+    install: *prereq
+    script:
+    - docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE;
+  - stage: publish
+    install: *prereq
+    script:
+    - echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER docker.io/apealive;
+    - TAG="${TRAVIS_TAG:-${TRAVIS_BRANCH/master/latest}"
+    - test -n "$TAG" || TAG="--tag ${TRAVIS_BRANCH/master/latest}" && TAG="--tag ${TAG}"
+    - PUSH="--push-to-registry -r docker.io/apealive --registry-user $DOCKER_USER --registry-token $DOCKER_PASS";
+    - docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE $PUSH;
 
 after_failure:
 - test -e dockerfile.fail && cat dockerfile.fail || true
 
 after_success:
 - docker images
+
+notifications:
+  webhooks:
+    on_success: change  # options: [always|never|change] default: always
+    on_failure: never
+    on_start: never
+    on_cancel: never
+    on_error: never
+  email: true
+
