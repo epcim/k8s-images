@@ -1,0 +1,24 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "dfc802e2e69b1716ba29adc3c60f81f14baad98eafbcc1e3e177c6993307d55d"
+        },
+        "pipfile-spec": 6,
+        "requires": {
+            "python_version": "2.7"
+        },
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.python.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "dockermake": {
+            "git": "https://github.com/avirshup/DockerMake"
+        }
+    },
+    "develop": {}
+}

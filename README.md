@@ -13,17 +13,18 @@ We use virtualenv to isolate python requirements to build images.
 Prerequsites:
 
     python -m ensurepip --default-pip
-    pip install --user virtualenv
-    PYENV=~/.pyenv_dockermake
-    python -m virtualenv -p python ${PYENV}
+    pip install --user pipenv
+    pipenv --two #--three
+    pipenv install
 
-    . ${PYENV}/bin/activate
+    pipenv shell
+
 
 DockerMake (https://github.com/avirshup/DockerMake):
 
-    pip install DockerMake
-    # or for latest
-    pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
+    pipenv install DockerMake
+    # or
+    pipenv install "git+https://github.com/avirshup/DockerMake#egg=dockermake"
 
 
 ## Usage

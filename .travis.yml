@@ -1,39 +1,61 @@
-sudo: true
-
+sudo: required
+language: python
+cache: pip
+python:
+- '3.6'
 services:
 - docker
-
-language: python
 
 env:
   global:
   - LANG="C.UTF-8"
   - LC_ALL="C"
+  - PIPENV_SHELL_COMPAT=true PIPENV_COLORBLIND=true PIPENV_NOSPIN=true
   - COMMIT=${TRAVIS_COMMIT::8}
-  - secure: G0ZoD7OMQyQF9/ZuuaOXrzgma/WuQtfYUOE15eJDAEf/8M4n9jdgnO4AQVaOEJevyzFYhTn5O7QAOPuWa25JM/nobvRWmSRKVp75sZY+0/gfOMIF5upnyCHQSsZCXef/5v8nnGNpRVKJAS8HthTpghTNPLgHJ+mCPQdSOfxoSqztyxF5VePxIdAfczDlYaYIX/NRZ42Nl5tvNUrxIuuYXi1nBSA69HCl3fNlIG6hVZ9KFZZHCvKfrJqri1xFyecsoMY0B7CfqiWO7arbSacbXa8Mvr1t+gh9bgb/PP65CtkumZTIYlkZlzn5UciGbQbH/Bn0RtFpTJW7Ct8qzljX41ofxMdILdGyQ7GidODqOPGqZdaiE9nvaGUyoED2CFi7QFm8PUOxaJwly7Kaz56MMDAERB9S1xAthL7FL70sgjB8ohGrdpR267rVM0MkMw7oRKzjbQDiIahYApMxQOkHzBlAaJhoQNAeHWmU19bsP5lJVFnlcyLLP4fArfJeiM34vdu3YQoTuXxIcZfKqnK9nw37ypIZvOQ8gfUbglDC4VNAON4D/NAjdmF/rZXvQq7cu5tP0CiKV5+ITcdeeZMSSoaoNbYlLsxC/0cW5B/yN7TvP/Zt4o09jO8kkjKxyKaozdoR0JrmU9ibsGaf36CJJdJ5mV2gwrr18JOssK9ddrg=
-  - secure: 25kObQXxfcfkAKg5syuzeQ3YAOhUdvW1OAVabupEmSuTLvUpKDyqvg8s26LhIRS8fIrQYHh7xvg+oziE4do3gKZhf4br35rETB+P1tqWqejzWHm3aK4b5knI8CpE1ImwNJ8etCe7L1X/WKHVhfVPWuZj/4MO9tSELWw6MTzrShawD25iz833uaS+RvU771wB34yOP9gU+4aDLPf93vHRhQ+0/f2krL+LZ3lOENyNy3SDfucaSrIZCMZGbLPG0/4/olUa740wnnRrmlanSmzeWAOYXlBHFDrFFhKVylJKXb6+7uUMWLNhiPuUVi5+o4mScDP7L5ePcbdU+mxY5Ndse+SBB2kcPL6vJ1YXJhQttcc5u2oxo7+Ng/MkBaC42Et0ymXNgxyvy3lrSnohhbcztYXcY1wShSerJ80iMuH5wsdMYwnwK7mFrv73sBiJOCwUOb5ROMPlnB0T/jjN6Fdo4odmCS/Q1CXGbWRFcHDsiHkpwJ8Ecr/C7OmkVbhuI2isrZHvCMWcPHo4lNYQtFPI5SONMY65+ETPgw1iDvrrweU4xKsIRo0iTpvyFvEd+V9JUcMe/jXlb568meBesyf24jNw5wtSg28CEqLtBdmfQhdZ+lBVONWboive9STjC2CzBfNYl4fcS0JE0X+sVUGHTA3xOJJR9DQ1upu/p1iqbD0=
-
-install:
-- pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
-- pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
+  - secure: pSGFMpfUyPweTqRtpfBhRHVEJHId568aY5ILPmJF8tZ2bSP3A/w2vlpiJ2oszXKLDIqOW7nz11o1/hh++1BHlnnfqTFx7iQQ1UdYLuHmDH7f3Mc5apf4exlbST+Kg98l+kidWIE2PK8YOitYo/9Kd1ECEyFQDwZqd/J9eK/EQO1iyOeKTggawaImoP1haLFzEvVCfucgvQdDkEx4e4JtEL4sM+zL7gvbm9QVBOycVl6jG6OrUDhLwET8hD4+VPhcAOzfFtH/LJc1/EjIXB4Q94NUEjpVelFNKXGtKbMvC8mfbIqXfMzFpiGTRNQdC32gBFrPTtFzJ7cAOdrJ0Hoe50CQEtfZDw2nmnxfbE+S8OrqqUCmdcGFUFqeYutmOFWGelghiqaZQe9b9Q1Lo1A/NJ+o1Ivxkf04uOOfz0RWes53ZQZWJAnxDYhBc8INqzRZQQYwRJmhm24KEW5biJqSBKlcgjrEPpun3y5WVMwXOPYJd9cP0fBDK5jAoPifvTfGefWJ1Nc6RXfpxlGPdZ3S/M8IS8sxuyyFMLvaIjkUnuxfhpIRGa1/FBR41UVR3EDmCNa1OQJyIRJxX/NiegW2Y733x5rs84ClVdgk3/gs5XkvaRQnfeO4Endo/zlTojUNlRI+jbhkkk7fE8Eu2glE142M2bn7u/p1439j20uB6RQ=
+  - secure: YxWVB1YuVbD9k+Eh3+iFgKbtqZFYNCzPs0xSv17XYygBKRjcVSBy+udP+oK9A0kdTvJnzvLGg8YYIy5oxdUu9fdpQ/dG7CA+hGmaodzTVSb3FrLD1tZOj4uOdOHLG0FjxttfH3KK7lq4zKBdlhX4vRe+UcBu8En8diJj2O8vFxaDQro5W+DUNO/X3EoHqMZZuQblZH9grrrqfRqc6JoOoAXQZB7t6x7/wucftkqnQ2JeIcEFjz842jCddvDQXb1wvXLFqP4hxswtSzvdj3YcR570h4+ye87p3dnrlm9j1qxm9oBvFuUXVhC+xQmO4U1jpVxvScsihudG46TAvedUAnNd6+UqiC1VMBrMOun+T3yRIbhgPXo65HxBjVMXEbBWJbbBW1/XqiTkvR/PVscCSy8dZnE1wWzxh3bAEj/2mfDqNBGXoQGclnnxAcDoaHQERIc4vuIGMD4uymlWwPaJZsBBPtoFtH3WsqtWLRnULLrk0B39uGlm93NQrZf01MyMbTjk0ldHTFjIoJCz9lfuTQc0JaYb2KGcROIhbHr2rHTOZdIqe9/mMVGAx8w1CG5bqbfn4X87LiT7BDq7wcwgdQ26oFrXuV3NnpWOjB7g521YqOZUVRbz6AFl3jV8QHNmKHOvvxRPi9iNrwznaEvFRH+6kFxxhZSHJy7zAxtHvCQ=
 
 script:
-- echo TRAVIS_BRANCH=$TRAVIS_BRANCH, TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    case $TRAVIS_BRANCH in
-      master|develop)
-        echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER docker.io/apealive;
-        test -n "$TAG" || TAG="--tag ${TRAVIS_BRANCH/master/latest}";
-        PUSH="--push-to-registry -r docker.io/apealive --registry-user $DOCKER_USER --registry-token $DOCKER_PASS";
-        docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE $PUSH;
-      ;;
-    esac
-  else
-    docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE;
-  fi;
+- "/bin/true"
+
+stages:
+- name: test
+- name: build
+  if: "( branch NOT IN (master) OR fork = true ) AND type IN (push, api, pull_request)"
+- name: publish
+  if: "( tag =~ ^v.* OR branch IN (master, develop) ) AND type != pull_request AND fork != true"
+
+jobs:
+  include:
+  - stage: test
+    install: &1
+    - pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
+    - pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
+    script:
+    - docker-make --list
+    - docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make --no_build % $TAG $CACHE;
+  - stage: build
+    install: *1
+    script:
+    - docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE;
+  - stage: publish
+    install: *1
+    script:
+    - test -z "$TRAVIS_TAG" && TAG="--tag ${TRAVIS_BRANCH/master/latest}" || TAG="--tag ${TRAVIS_TAG}"
+    - PUSH="--push-to-registry -r docker.io/apealive --registry-user $DOCKER_USER --registry-token $DOCKER_PASS";
+    - echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER docker.io/apealive;
+    - docker-make --list | awk '/*/{print $2}'| grep -v '^base\|^common|^layer\|^tini' | xargs -n1 -I% docker-make %  $TAG $CACHE $PUSH;
 
 after_failure:
 - test -e dockerfile.fail && cat dockerfile.fail || true
-
 after_success:
 - docker images
+
+notifications:
+  webhooks:
+    on_success: change
+    on_failure: never
+    on_start: never
+    on_cancel: never
+    on_error: never
+  email: true
